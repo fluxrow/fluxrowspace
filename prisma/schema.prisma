@@ -28,22 +28,23 @@ model Workspace {
   owner_id   String
   created_at DateTime @default(now())
 
-  owner          User                    @relation(fields: [owner_id], references: [id])
-  members        WorkspaceMember[]
-  projects       Project[]
-  credentials    IntegrationCredential[]
-  subscription   WorkspaceSubscription?
-  usage          WorkspaceUsage[]
-  trial          WorkspaceTrial?
-  activityLogs   ActivityLog[]
-  adsDrafts      AdsDraft[]
-  campaignDrafts CampaignDraft[]
-  campaigns      Campaign[]
+  owner        User                    @relation(fields: [owner_id], references: [id])
+  members      WorkspaceMember[]
+  projects     Project[]
+  credentials  IntegrationCredential[]
+  subscription WorkspaceSubscription?
+  usage        WorkspaceUsage[]
+  trial        WorkspaceTrial?
+  activityLogs ActivityLog[]
+  adsDrafts    AdsDraft[]
 
-  comEnabled          Boolean @default(false) @map("com_enabled")
-  comUrl              String? @map("com_url")
-  comApiKey           String? @map("com_api_key")
-  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
+  campaigns Campaign[]
+
+  comEnabled          Boolean         @default(false) @map("com_enabled")
+  comUrl              String?         @map("com_url")
+  comApiKey           String?         @map("com_api_key")
+  onboardingCompleted Boolean         @default(false) @map("onboarding_completed")
+  CampaignDraft       CampaignDraft[]
 }
 
 model WorkspaceMember {
@@ -87,6 +88,7 @@ model Project {
 
   // 🔽 ADICIONAR ESTA LINHA
   adCampaignDrafts AdCampaignDraft[]
+  adDrafts         AdDraft[]
 
   @@map("projects")
 }
@@ -190,17 +192,16 @@ model ContentBrief {
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
-  project         Project               @relation(fields: [project_id], references: [id])
-  offer_data      OfferData?
-  ai_generated    AIGeneratedText?
-  media_assets    MediaAsset[]
-  scheduled_posts ScheduledPost[]
-  history         ClientReviewHistory[]
-  ad_drafts       AdDraft[]
-  campaignDrafts  CampaignDraft[]
+  project          Project               @relation(fields: [project_id], references: [id])
+  offer_data       OfferData?
+  ai_generated     AIGeneratedText?
+  media_assets     MediaAsset[]
+  scheduled_posts  ScheduledPost[]
+  history          ClientReviewHistory[]
 
-  // 🔽 ADICIONAR ESTA LINHA
   adCampaignDrafts AdCampaignDraft[]
+
+  CampaignDraft CampaignDraft[]
 }
 
 model OfferData {
@@ -244,6 +245,8 @@ model MediaAsset {
   content_brief   ContentBrief      @relation(fields: [content_brief_id], references: [id])
   campaigns       Campaign[]
   AdCreativeDraft AdCreativeDraft[]
+  campaignDrafts  CampaignDraft[]
+  adDrafts        AdDraft[]
 }
 
 model AdCampaignDraft {
@@ -345,18 +348,21 @@ model ClientReviewHistory {
 }
 
 model AdDraft {
-  id             String  @id @default(uuid())
-  contentBriefId String  @map("content_brief_id")
-  platform       String // 'META' (por enquanto)
-  status         String  @default("draft") // 'draft' | 'ready' | 'scheduled' | 'published'
-  campaignName   String? @map("campaign_name")
-  adsetName      String? @map("adset_name")
-  configJson     Json?   @map("config_json") // guarda configs flexíveis: público, orçamento, etc.
+  id              String     @id @default(uuid())
+  projectId       String     @map("project_id")
+  objective       String
+  headline        String?
+  primaryText     String?
+  callToAction    String?
+  budgetDaily     Decimal?
+  audienceJson    Json?
+  creativeId      String?    @map("creative_id")
+  status          String     @default("DRAFT") // DRAFT | PENDING | READY | PUBLISHED
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-
-  content_brief ContentBrief @relation(fields: [contentBriefId], references: [id])
+  project         Project    @relation(fields: [projectId], references: [id])
+  creative        MediaAsset? @relation(fields: [creativeId], references: [id])
 
   @@map("ad_drafts")
 }
@@ -390,20 +396,25 @@ model CampaignDraft {
 
   name      String
   objective String // 'AWARENESS' | 'TRAFFIC' | 'ENGAGEMENT' | 'LEADS'
-  status    String @default("DRAFT") // 'DRAFT' | 'READY' | 'SENT' | 'PUBLISHED' | 'FAILED'
+  status    String @default("DRAFT") // 'DRAFT' | 'READY' | 'SYNCED' | 'ERROR'
 
   dailyBudget Int?    @map("daily_budget")
-  currency    String? @default("BRL")
+  totalBudget Int?    @map("total_budget")
+  currency    String? @map("currency")
 
-  targetingJson Json? @map("targeting_json")
-  placementJson Json? @map("placement_json")
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  targetingJson Json? @map("targeting_json") // Armazena idade, interesses, localização, etc.
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  workspace Workspace     @relation(fields: [workspaceId], references: [id])
-  project   Project       @relation(fields: [projectId], references: [id])
-  brief     ContentBrief? @relation(fields: [briefId], references: [id])
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id])
+  project      Project       @relation(fields: [projectId], references: [id])
+  brief        ContentBrief? @relation(fields: [briefId], references: [id])
+  MediaAsset   MediaAsset?   @relation(fields: [mediaAssetId], references: [id])
+  mediaAssetId String?
 
   @@map("campaign_drafts")
 }

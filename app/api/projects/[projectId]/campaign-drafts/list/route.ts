@@ -1,0 +1,13 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+
+export async function GET(
+    req: Request,
+    { params }: { params: { projectId: string } }
+) {
+    try {
+        return NextResponse.json({ status: "OK" });
+    } catch (error) {
+        return NextResponse.json({ error: "Internal Error" }, { status: 500 });
+    }
+}
