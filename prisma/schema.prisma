@@ -1,0 +1,437 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password_hash String
+  created_at    DateTime @default(now())
+
+  workspaces       WorkspaceMember[]
+  owned_workspaces Workspace[]
+  activityLogs     ActivityLog[]
+}
+
+model Workspace {
+  id         String   @id @default(uuid())
+  name       String
+  owner_id   String
+  created_at DateTime @default(now())
+
+  owner          User                    @relation(fields: [owner_id], references: [id])
+  members        WorkspaceMember[]
+  projects       Project[]
+  credentials    IntegrationCredential[]
+  subscription   WorkspaceSubscription?
+  usage          WorkspaceUsage[]
+  trial          WorkspaceTrial?
+  activityLogs   ActivityLog[]
+  adsDrafts      AdsDraft[]
+  campaignDrafts CampaignDraft[]
+  campaigns      Campaign[]
+
+  comEnabled          Boolean @default(false) @map("com_enabled")
+  comUrl              String? @map("com_url")
+  comApiKey           String? @map("com_api_key")
+  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
+}
+
+model WorkspaceMember {
+  id           String   @id @default(uuid())
+  workspace_id String
+  user_id      String
+  role         String // 'owner' | 'admin' | 'member'
+  created_at   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspace_id], references: [id])
+  user      User      @relation(fields: [user_id], references: [id])
+}
+
+model Project {
+  id             String  @id @default(uuid())
+  workspace_id   String
+  name           String
+  description    String?
+  brand_voice    String?
+  mainColor      String? @map("main_color")
+  secondaryColor String? @map("secondary_color")
+  fonts          String? // JSON string
+  logoUrl        String? @map("logo_url")
+
+  metaPageId         String? @map("meta_page_id")
+  metaAccessTokenId  String? @map("meta_access_token_id")
+  canvaIntegrationId String? @map("canva_integration_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace      Workspace       @relation(fields: [workspace_id], references: [id])
+  contentBriefs  ContentBrief[]
+  brandTemplates BrandTemplate[]
+  contentPresets ContentPreset[]
+  adsDrafts      AdsDraft[]
+  campaignDrafts CampaignDraft[]
+  campaigns      Campaign[]
+
+  defaultRequiresApproval Boolean @default(false) @map("default_requires_approval")
+
+  // 🔽 ADICIONAR ESTA LINHA
+  adCampaignDrafts AdCampaignDraft[]
+
+  @@map("projects")
+}
+
+model BrandTemplate {
+  id              String   @id @default(uuid())
+  projectId       String   @map("project_id")
+  project         Project  @relation(fields: [projectId], references: [id])
+  name            String
+  description     String?
+  templateType    String   @map("template_type") // 'FEED', 'STORY', 'REELS', 'CAROUSEL'
+  canvaTemplateId String   @map("canva_template_id")
+  previewUrl      String?  @map("preview_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("brand_templates")
+}
+
+model ContentPreset {
+  id              String   @id @default(uuid())
+  projectId       String   @map("project_id")
+  project         Project  @relation(fields: [projectId], references: [id])
+  name            String
+  description     String?
+  aiCaptionPrompt String?  @map("ai_caption_prompt")
+  aiImagePrompt   String?  @map("ai_image_prompt")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("content_presets")
+}
+
+model IntegrationCredential {
+  id             String   @id @default(uuid())
+  workspace_id   String
+  type           String // 'META' | 'OPENAI' | 'CANVA'
+  data_encrypted Json
+  created_at     DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspace_id], references: [id])
+}
+
+model WorkspaceSubscription {
+  id                   String    @id @default(uuid())
+  workspaceId          String    @unique @map("workspace_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
+  planId               String    @default("FREE") @map("plan_id") // 'FREE', 'PRO', 'AGENCY'
+  status               String    @default("active") // 'active', 'past_due', 'canceled', 'trialing'
+  currentPeriodEnd     DateTime? @map("current_period_end")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("workspace_subscriptions")
+}
+
+model WorkspaceUsage {
+  id            String @id @default(uuid())
+  workspaceId   String @map("workspace_id")
+  month         String // Format: 'YYYY-MM'
+  aiGenerations Int    @default(0) @map("ai_generations")
+  postsCreated  Int    @default(0) @map("posts_created")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([workspaceId, month])
+  @@map("workspace_usage")
+}
+
+model WorkspaceTrial {
+  id          String   @id @default(uuid())
+  workspaceId String   @unique @map("workspace_id")
+  trialStart  DateTime @map("trial_start")
+  trialEnd    DateTime @map("trial_end")
+  isActive    Boolean  @default(true) @map("is_active")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("workspace_trials")
+}
+
+model ContentBrief {
+  id                 String  @id @default(uuid())
+  project_id         String
+  title              String
+  objective          String?
+  content_type       String? // 'INSTITUTIONAL' | 'OFFER' | 'NEWS' | 'EDUCATIONAL'
+  channel            String? // 'META_FEED' | 'META_STORY' | 'META_REELS'
+  reference_text     String?
+  reference_file_url String?
+  status             String  @default("DRAFT") // 'DRAFT' | 'READY_FOR_AI' | 'AI_DONE' | 'DESIGN_DONE' | 'SCHEDULED' | 'PUBLISHED'
+
+  requiresApproval Boolean @default(false) @map("requires_approval")
+  approvalStatus   String  @default("none") @map("approval_status") // 'none' | 'pending' | 'approved' | 'rejected'
+  approvalToken    String? @map("approval_token")
+  approvalComment  String? @map("approval_comment")
+  approverEmail    String? @map("approver_email")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  project         Project               @relation(fields: [project_id], references: [id])
+  offer_data      OfferData?
+  ai_generated    AIGeneratedText?
+  media_assets    MediaAsset[]
+  scheduled_posts ScheduledPost[]
+  history         ClientReviewHistory[]
+  ad_drafts       AdDraft[]
+  campaignDrafts  CampaignDraft[]
+
+  // 🔽 ADICIONAR ESTA LINHA
+  adCampaignDrafts AdCampaignDraft[]
+}
+
+model OfferData {
+  id                String   @id @default(uuid())
+  content_brief_id  String   @unique
+  destination       String?
+  start_date        String?
+  end_date          String?
+  price_from        Decimal?
+  installment_value Decimal?
+  installment_count Int?
+  included_items    String? // JSON or text
+  additional_notes  String?
+
+  content_brief ContentBrief @relation(fields: [content_brief_id], references: [id])
+}
+
+model AIGeneratedText {
+  id               String   @id @default(uuid())
+  content_brief_id String   @unique
+  main_caption     String?
+  variations_json  Json?
+  prompt_image     String?
+  created_at       DateTime @default(now())
+
+  content_brief   ContentBrief      @relation(fields: [content_brief_id], references: [id])
+  AdCreativeDraft AdCreativeDraft[]
+}
+
+model MediaAsset {
+  id               String   @id @default(uuid())
+  content_brief_id String
+  type             String // 'IMAGE' | 'VIDEO'
+  url              String
+  source           String // 'AI' | 'UPLOAD' | 'CANVA'
+  canva_design_id  String?
+  canva_page_id    String?
+  metadata_json    Json?
+  created_at       DateTime @default(now())
+
+  content_brief   ContentBrief      @relation(fields: [content_brief_id], references: [id])
+  campaigns       Campaign[]
+  AdCreativeDraft AdCreativeDraft[]
+}
+
+model AdCampaignDraft {
+  id        String  @id @default(uuid())
+  projectId String  @map("project_id")
+  briefId   String? @map("brief_id")
+
+  name      String
+  objective String? // 'AWARENESS' | 'TRAFFIC' | 'ENGAGEMENT' | 'LEADS' (livre por enquanto)
+  status    String  @default("DRAFT") // 'DRAFT' | 'READY_FOR_REVIEW' | 'READY_TO_SYNC' | 'SYNCED'
+
+  dailyBudget Int?    @map("daily_budget")
+  totalBudget Int?    @map("total_budget")
+  currency    String? @default("BRL")
+
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  metaCampaignId String? @map("meta_campaign_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  project Project       @relation(fields: [projectId], references: [id])
+  brief   ContentBrief? @relation(fields: [briefId], references: [id])
+
+  adCreatives AdCreativeDraft[]
+
+  @@map("ad_campaign_drafts")
+}
+
+model AdCreativeDraft {
+  id           String  @id @default(uuid())
+  campaignId   String  @map("campaign_id")
+  mediaAssetId String? @map("media_asset_id")
+  aiTextId     String? @map("ai_text_id")
+
+  placement    String? // 'FEED' | 'STORIES' | 'REELS' etc. (string livre por enquanto)
+  primaryText  String?
+  headline     String?
+  description  String?
+  callToAction String? @map("call_to_action")
+
+  metaAdId String? @map("meta_ad_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  campaign   AdCampaignDraft  @relation(fields: [campaignId], references: [id])
+  mediaAsset MediaAsset?      @relation(fields: [mediaAssetId], references: [id])
+  aiText     AIGeneratedText? @relation(fields: [aiTextId], references: [id])
+
+  @@map("ad_creative_drafts")
+}
+
+model ScheduledPost {
+  id               String    @id @default(uuid())
+  content_brief_id String
+  platform         String // 'META'
+  channel          String?
+  scheduled_at     DateTime?
+  status           String // 'PENDING' | 'SCHEDULED' | 'FAILED' | 'PUBLISHED'
+  external_post_id String?
+  error_message    String?
+  slug             String?   @unique // Placeholder for future custom domains/URLs
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @default(now()) @updatedAt
+
+  content_brief ContentBrief @relation(fields: [content_brief_id], references: [id])
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  userId      String?  @map("user_id")
+  action      String
+  targetType  String   @map("target_type")
+  targetId    String?  @map("target_id")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
+
+  @@map("activity_logs")
+}
+
+model ClientReviewHistory {
+  id          String   @id @default(uuid())
+  briefId     String   @map("brief_id")
+  workspaceId String   @map("workspace_id")
+  action      String // 'APPROVED' | 'REJECTED'
+  comment     String? // null quando for aprovação
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  brief ContentBrief @relation(fields: [briefId], references: [id])
+
+  @@map("client_review_history")
+}
+
+model AdDraft {
+  id             String  @id @default(uuid())
+  contentBriefId String  @map("content_brief_id")
+  platform       String // 'META' (por enquanto)
+  status         String  @default("draft") // 'draft' | 'ready' | 'scheduled' | 'published'
+  campaignName   String? @map("campaign_name")
+  adsetName      String? @map("adset_name")
+  configJson     Json?   @map("config_json") // guarda configs flexíveis: público, orçamento, etc.
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  content_brief ContentBrief @relation(fields: [contentBriefId], references: [id])
+
+  @@map("ad_drafts")
+}
+
+model AdsDraft {
+  id             String   @id @default(uuid())
+  workspaceId    String   @map("workspace_id")
+  projectId      String?  @map("project_id")
+  title          String
+  objective      String?
+  status         String   @default("DRAFT")
+  budgetDaily    Decimal? @map("budget_daily")
+  budgetLifetime Decimal? @map("budget_lifetime")
+  audienceJson   Json?    @map("audience_json")
+  creativeJson   Json?    @map("creative_json")
+  scheduleJson   Json?    @map("schedule_json")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  project   Project?  @relation(fields: [projectId], references: [id])
+
+  @@map("ads_drafts")
+}
+
+model CampaignDraft {
+  id          String  @id @default(uuid())
+  workspaceId String  @map("workspace_id")
+  projectId   String  @map("project_id")
+  briefId     String? @map("brief_id")
+
+  name      String
+  objective String // 'AWARENESS' | 'TRAFFIC' | 'ENGAGEMENT' | 'LEADS'
+  status    String @default("DRAFT") // 'DRAFT' | 'READY' | 'SENT' | 'PUBLISHED' | 'FAILED'
+
+  dailyBudget Int?    @map("daily_budget")
+  currency    String? @default("BRL")
+
+  targetingJson Json? @map("targeting_json")
+  placementJson Json? @map("placement_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id])
+  project   Project       @relation(fields: [projectId], references: [id])
+  brief     ContentBrief? @relation(fields: [briefId], references: [id])
+
+  @@map("campaign_drafts")
+}
+
+model Campaign {
+  id          String @id @default(uuid())
+  workspaceId String @map("workspace_id")
+  projectId   String @map("project_id")
+
+  name      String
+  objective String // e.g. "TRAFFIC" | "ENGAGEMENT"
+  budget    Decimal? // orçamento diário ou total
+  status    String   @default("DRAFT") // DRAFT | READY | SUBMITTED | APPROVED
+
+  // Criativo selecionado
+  creativeMediaId String? @map("creative_media_id")
+  creativeText    String? @map("creative_text")
+
+  // Datas
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id])
+  project       Project     @relation(fields: [projectId], references: [id])
+  creativeMedia MediaAsset? @relation(fields: [creativeMediaId], references: [id])
+
+  @@map("campaigns")
+}

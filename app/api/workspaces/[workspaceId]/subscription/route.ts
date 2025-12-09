@@ -1,0 +1,17 @@
+import { NextResponse } from "next/server";
+import { getWorkspacePlan, getWorkspaceSubscription } from "@/lib/subscription";
+
+export async function GET(req: Request, { params }: { params: { workspaceId: string } }) {
+    try {
+        const plan = await getWorkspacePlan(params.workspaceId);
+        const subscription = await getWorkspaceSubscription(params.workspaceId);
+
+        return NextResponse.json({
+            plan,
+            subscription
+        });
+    } catch (error) {
+        console.error("[SUBSCRIPTION_GET]", error);
+        return new NextResponse("Internal Error", { status: 500 });
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "rewrites": [
+        {
+            "source": "/share/:token",
+            "destination": "/share/[token]"
+        }
+    ],
+    "redirects": [],
+    "cleanUrls": true,
+    "trailingSlash": false
+}
