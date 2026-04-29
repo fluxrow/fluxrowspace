@@ -28,7 +28,7 @@ export default function RegisterPage() {
             }
             const data = await res.json();
             document.cookie = `auth-token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
-            router.push("/dashboard");
+            router.push("/projects");
         } catch {
             setError("Erro ao criar conta");
         } finally {
