@@ -1,32 +1,36 @@
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { User } from '@prisma/client';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 
-// Mocking bcrypt and jwt since we can't install packages
-// In a real app, use 'bcrypt' and 'jsonwebtoken' or 'jose'
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'fallback-secret';
 
 export async function hashPassword(password: string): Promise<string> {
-    // Simple mock hash - DO NOT USE IN PRODUCTION
-    return `hashed_${password}`;
+    return bcrypt.hash(password, 12);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-    return hash === `hashed_${password}`;
+    return bcrypt.compare(password, hash);
 }
 
 export async function createSession(user: User) {
-    // Mock session creation
-    return {
-        user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-        },
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    };
+    const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+    );
+    return { token, user: { id: user.id, email: user.email, name: user.name } };
 }
 
 export async function getCurrentUser() {
-    // Mock getting current user from request headers or cookies
-    // For development, return a mock user or null
-    return null;
+    try {
+        const cookieStore = cookies();
+        const token = cookieStore.get('auth-token')?.value;
+        if (!token) return null;
+        const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
+        return await db.user.findUnique({ where: { id: payload.userId } });
+    } catch {
+        return null;
+    }
 }
