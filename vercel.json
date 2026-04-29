@@ -1,11 +1,12 @@
 {
-    "rewrites": [
-        {
-            "source": "/share/:token",
-            "destination": "/share/[token]"
-        }
-    ],
-    "redirects": [],
-    "cleanUrls": true,
-    "trailingSlash": false
+  "buildCommand": "npm run build",
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/share/:token",
+      "destination": "/share/[token]"
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
