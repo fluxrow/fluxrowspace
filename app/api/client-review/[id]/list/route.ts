@@ -4,7 +4,7 @@ import { mapBriefListItem } from "@/lib/client-review-mappers";
 
 export async function GET(
     req: Request,
-    { params }: { params: { workspaceId: string } }
+    { params }: { params: { id: string } }
 ) {
     try {
         const { id } = params;

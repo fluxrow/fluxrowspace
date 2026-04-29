@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-export async function GET(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         const workspace = await db.workspace.findUnique({
             where: { id: params.id }
@@ -18,7 +18,7 @@ export async function GET(req: Request, { params }: { params: { workspaceId: str
     }
 }
 
-export async function PATCH(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
     try {
         const body = await req.json();
         const { comEnabled, comUrl, comApiKey, onboardingCompleted } = body;

@@ -1,10 +1,9 @@
-```typescript
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function POST(
   request: Request,
-  { params }: { params: { workspaceId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
@@ -36,4 +35,3 @@ export async function POST(
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
-```

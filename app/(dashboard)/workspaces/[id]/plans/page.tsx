@@ -54,7 +54,7 @@ const PLANS = [
     }
 ];
 
-export default function PlansPage({ params }: { params: { workspaceId: string } }) {
+export default function PlansPage({ params }: { params: { id: string } }) {
     const [loading, setLoading] = useState<string | null>(null);
 
     const handleSubscribe = async (planId: string) => {

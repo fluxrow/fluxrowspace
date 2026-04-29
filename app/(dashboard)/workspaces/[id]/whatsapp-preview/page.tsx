@@ -16,7 +16,7 @@ interface Brief {
 
 export default function WhatsAppPreviewPage() {
     const params = useParams();
-    const workspaceId = params.id as string;
+    const id = params.id as string;
 
     const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);

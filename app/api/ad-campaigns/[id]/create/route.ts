@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-export async function POST(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
         const { id } = params;
 

@@ -3,11 +3,11 @@
 import { Button, Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
 import { Download } from "lucide-react";
 
-export default function CalendarPage({ params }: { params: { workspaceId: string } }) {
-    const workspaceId = params.id;
+export default function CalendarPage({ params }: { params: { id: string } }) {
+    const id = params.id;
 
     const handleExport = (type: 'csv' | 'ics') => {
-        window.location.href = `/api/export/calendar.${type}?workspaceId=${workspaceId}`;
+        window.location.href = `/api/export/calendar.${type}?workspaceId=${id}`;
     };
 
     return (

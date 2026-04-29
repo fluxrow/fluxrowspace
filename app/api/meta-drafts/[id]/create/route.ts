@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 
 export async function POST(
     req: Request,
-    { params }: { params: { workspaceId: string } }
+    { params }: { params: { id: string } }
 ) {
     try {
         const body = await req.json();

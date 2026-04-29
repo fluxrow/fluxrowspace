@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
 import { formatDistanceToNow } from "date-fns";
 
-export default function ActivityPage({ params }: { params: { workspaceId: string } }) {
+export default function ActivityPage({ params }: { params: { id: string } }) {
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 

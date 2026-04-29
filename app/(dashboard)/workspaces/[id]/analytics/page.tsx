@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui";
 
-export default function AnalyticsPage({ params }: { params: { workspaceId: string } }) {
+export default function AnalyticsPage({ params }: { params: { id: string } }) {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 

@@ -6,7 +6,7 @@ import { Button, Card, CardHeader, CardTitle, CardContent, Input } from "@/compo
 
 export default function ComIntegrationPage() {
     const params = useParams();
-    const workspaceId = params.id as string;
+    const id = params.id as string;
 
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);

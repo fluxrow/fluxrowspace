@@ -5,10 +5,10 @@ import { IntegrationStatus } from "@/components/ui";
 import { Input, Button } from "@/components/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function IntegrationsPage({ params }: { params: { workspaceId: string } }) {
+export default function IntegrationsPage({ params }: { params: { id: string } }) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const workspaceId = params.id;
+    const id = params.id;
 
     // State for OpenAI
     const [openaiKey, setOpenaiKey] = useState("");

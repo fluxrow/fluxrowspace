@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getWorkspacePlan, getWorkspaceSubscription } from "@/lib/subscription";
 
-export async function GET(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         const plan = await getWorkspacePlan(params.id);
         const subscription = await getWorkspaceSubscription(params.id);

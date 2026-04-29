@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button, Card, CardHeader, CardTitle, CardContent, Input } from "@/components/ui";
 import { Trash2, UserPlus } from "lucide-react";
 
-export default function TeamPage({ params }: { params: { workspaceId: string } }) {
+export default function TeamPage({ params }: { params: { id: string } }) {
     const [members, setMembers] = useState<any[]>([]);
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);

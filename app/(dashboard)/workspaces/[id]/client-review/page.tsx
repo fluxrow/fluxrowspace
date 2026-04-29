@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ClientReviewCard } from "@/components/client-review/client-review-card";
 
-export default function ClientReviewListPage({ params }: { params: { workspaceId: string } }) {
+export default function ClientReviewListPage({ params }: { params: { id: string } }) {
     const { id } = params;
 
     const [briefs, setBriefs] = useState<any[]>([]);
@@ -13,7 +13,7 @@ export default function ClientReviewListPage({ params }: { params: { workspaceId
     useEffect(() => {
         async function loadBriefs() {
             try {
-                const res = await fetch(`/api/client-review/${workspaceId}/list`);
+                const res = await fetch(`/api/client-review/${id}/list`);
                 const data = await res.json();
                 setBriefs(data);
             } catch (e) {
@@ -23,7 +23,7 @@ export default function ClientReviewListPage({ params }: { params: { workspaceId
             }
         }
         loadBriefs();
-    }, [workspaceId]);
+    }, [id]);
 
     if (loading) {
         return <div className="p-8 text-center">Loading...</div>;
@@ -52,7 +52,7 @@ export default function ClientReviewListPage({ params }: { params: { workspaceId
                         <ClientReviewCard
                             key={brief.id}
                             brief={brief}
-                            href={`/workspaces/${workspaceId}/client-review/${brief.id}`}
+                            href={`/workspaces/${id}/client-review/${brief.id}`}
                         />
                     ))}
                 </div>

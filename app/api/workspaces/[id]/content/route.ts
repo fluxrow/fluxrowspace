@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-export async function GET(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         const briefs = await db.contentBrief.findMany({
             where: {

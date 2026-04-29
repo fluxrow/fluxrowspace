@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { checkLimit } from "@/lib/subscription";
 
-export async function GET(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         const members = await db.workspaceMember.findMany({
             where: { workspace_id: params.id },
@@ -15,7 +15,7 @@ export async function GET(req: Request, { params }: { params: { workspaceId: str
     }
 }
 
-export async function POST(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
         const { email, role } = await req.json();
 

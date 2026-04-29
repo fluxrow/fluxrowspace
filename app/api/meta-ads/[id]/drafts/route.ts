@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export async function POST(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
         return NextResponse.json({ status: "OK" });
     } catch (error) {
@@ -9,7 +9,7 @@ export async function POST(req: Request, { params }: { params: { workspaceId: st
     }
 }
 
-export async function GET(req: Request, { params }: { params: { workspaceId: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         return NextResponse.json({ status: "OK" });
     } catch (error) {
