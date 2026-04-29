@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 
 export async function POST(req: Request) {
     try {
-        const { workspaceId } = await req.json();
+        const { id } = await req.json();
 
         const credential = await db.integrationCredential.findFirst({
             where: { workspace_id: workspaceId, type: 'META' }
